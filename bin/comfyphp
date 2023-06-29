@@ -1,0 +1,103 @@
+#!/usr/bin/env php
+<?php
+
+/*
+comfyphp dev -p 4000
+comfyphp dev --port 4000
+
+comfyphp build
+
+comfyphp preview -p 4000
+comfyphp preview --port 4000
+ */
+
+$args = $argv;
+$targetDir = ".comfyphp";
+$envDev = [".env.development", ".env.development.local", ".env", ".env.local"];
+$envPrd = [".env.production", ".env.production.local", ".env", ".env.local"];
+$contents = "";
+$port = 3000;
+
+// remove script name
+array_shift($args);
+
+// get action
+$action = isset($args[0]) ? $args[0] : "";
+
+// get port
+if (isset($args[1]) && ($args[1] === "-p" || $args[1] === "--port")) {
+    if (isset($args[2]) && is_numeric($args[2])) {
+        $port = $args[2];
+    }
+}
+
+switch ($action) {
+    // dev
+    case "dev":
+        setEnv("dev");
+        hostServer();
+        break;
+    // build for production
+    case "build":
+        setEnv("prd");
+        break;
+    // production preview
+    case "preview":
+        setEnv("prd");
+        hostServer();
+        break;
+    // unknown
+    default:
+        echo "Invalid command\n";
+        break;
+}
+
+function setEnv($env)
+{
+    global $targetDir;
+    global $envDev;
+    global $envPrd;
+    global $contents;
+
+    // create directory
+    if (!file_exists($targetDir)) {
+        mkdir($targetDir);
+    }
+
+    // development
+    if ($env === "dev") {
+        $contents .= 'ENV="development"';
+        foreach ($envDev as $env) {
+            if (file_exists($env)) {
+                $contents .= file_get_contents($env) . PHP_EOL;
+            }
+        }
+    }
+    // production
+    else if ($env === "prd") {
+        $contents .= 'ENV="production"';
+        foreach ($envPrd as $env) {
+            if (file_exists($env)) {
+                $contents .= file_get_contents($env) . PHP_EOL;
+            }
+        }
+    }
+
+    // save contents
+    return file_put_contents($targetDir . "/.env", $contents);
+}
+
+function hostServer()
+{
+    global $port;
+    $command = "php -S 0.0.0.0:$port -t ./public";
+
+    exec($command, $output, $return);
+
+    // error
+    if ($return !== 0) {
+        echo "Failed to start PHP server.\n";
+        echo $output;
+        return;
+    }
+}
