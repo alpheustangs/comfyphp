@@ -52,7 +52,7 @@ switch ($action) {
         break;
 }
 
-function setEnv($env)
+function setEnv(string $env): string
 {
     global $targetDir;
     global $envDev;
@@ -87,7 +87,7 @@ function setEnv($env)
     return file_put_contents($targetDir . "/.env", $contents);
 }
 
-function hostServer()
+function hostServer(): void
 {
     global $port;
     $command = "php -S 0.0.0.0:$port -t ./public";

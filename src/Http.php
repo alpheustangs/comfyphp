@@ -13,7 +13,7 @@ class Http
     }
 
     // all
-    public function all($path, $callback)
+    public function all(string $path, string | callable $callback): void
     {
         $this->routes["post"][$path] = $callback;
         $this->routes["get"][$path] = $callback;
@@ -27,55 +27,55 @@ class Http
     }
 
     // create
-    public function post($path, $callback)
+    public function post(string $path, string | callable $callback): void
     {
         $this->routes["post"][$path] = $callback;
     }
 
     // read
-    public function get($path, $callback)
+    public function get(string $path, string | callable $callback): void
     {
         $this->routes["get"][$path] = $callback;
     }
 
     // update
-    public function put($path, $callback)
+    public function put(string $path, string | callable $callback): void
     {
         $this->routes["put"][$path] = $callback;
     }
 
     // update
-    public function patch($path, $callback)
+    public function patch(string $path, string | callable $callback): void
     {
         $this->routes["patch"][$path] = $callback;
     }
 
     // delete
-    public function delete($path, $callback)
+    public function delete(string $path, string | callable $callback): void
     {
         $this->routes["delete"][$path] = $callback;
     }
 
     // head
-    public function head($path, $callback)
+    public function head(string $path, string | callable $callback): void
     {
         $this->routes["head"][$path] = $callback;
     }
 
     // options
-    public function options($path, $callback)
+    public function options(string $path, string | callable $callback): void
     {
         $this->routes["options"][$path] = $callback;
     }
 
     // trace
-    public function trace($path, $callback)
+    public function trace(string $path, string | callable $callback): void
     {
         $this->routes["trace"][$path] = $callback;
     }
 
     // trace
-    public function connect($path, $callback)
+    public function connect(string $path, string | callable $callback): void
     {
         $this->routes["connect"][$path] = $callback;
     }

@@ -48,7 +48,7 @@ class Core
         $this->getDocument();
     }
 
-    public function getEnvs()
+    private function getEnvs(): void
     {
         $root = $GLOBALS["ROOT"];
         $envHostPath = "$root/.comfyphp/.env";
@@ -102,40 +102,66 @@ class Core
         }
     }
 
-    public function getConfigs()
+    private function getConfigs(): void
     {
-        $root = $GLOBALS["ROOT"];
-        $configPath = "$root/comfy.config.php";
-
+        $name = "comfy.config.php";
+        $extra = [
+            '// cors',
+            'header("Access-Control-Allow-Origin: *");',
+            'header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");',
+            'header("Access-Control-Allow-Headers: Content-Type");',
+            'header("Access-Control-Allow-Credentials: true");',
+        ];
         $configs = [
             "CONFIG_VERSION" => ["version", "string", "1.0.0"],
             "CONFIG_MINIMIZE" => ["do document minimize in development mode", "boolean", false],
             "CONFIG_PAGE_PATH" => ["pages location", "string", "src/pages"],
         ];
 
+        $this->setConfigs($name, $configs, $extra);
+    }
+
+    // comfy.config.php, $configs = [ ... ]
+    public function setConfigs(string $name, array $configs, array $extra = null): void
+    {
+        $root = $GLOBALS["ROOT"];
+        $path = "$root/$name";
+
         // config not exist
-        if (!file_exists($configPath)) {
-            $configContent = "<?php\n\n";
+        if (!file_exists($path)) {
+            $content = "<?php\n\n";
 
-            $configContent .= '// cors' . "\n";
-            $configContent .= 'header("Access-Control-Allow-Origin: *");' . "\n";
-            $configContent .= 'header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");' . "\n";
-            $configContent .= 'header("Access-Control-Allow-Headers: Origin, Methods, Content-Type, Authorization");' . "\n";
-            $configContent .= 'header("Access-Control-Allow-Credentials: true");' . "\n\n";
-
-            foreach ($configs as $configTitle => $info) {
-                $configInfo = $info[0];
-                $configValue = ($info[1] === "dynamic") ? $info[2] : var_export($info[2], true);
-                $configValue = str_replace("'", '"', $configValue);
-                $configContent .=
-                    "// $configInfo\n" .
-                    '$GLOBALS["' . $configTitle . '"] = ' . $configValue . ";\n\n";
+            if ($extra) {
+                $lastExtra = end($extra);
+                reset($extra);
+                foreach ($extra as $line) {
+                    if ($line !== $lastExtra) {
+                        $content .= $line . "\n";
+                    }
+                    // last line
+                    else {
+                        $content .= $line . "\n\n";
+                    }
+                }
             }
 
-            file_put_contents($configPath, $configContent);
+            foreach ($configs as $title => $info) {
+                // declarations
+                $comment = $info[0];
+                $type = $info[1];
+                $value = $info[2];
+
+                $value = ($type === "dynamic") ? $value : var_export($value, true);
+                $value = str_replace("'", '"', $value);
+                $content .=
+                    "// $comment\n" .
+                    '$GLOBALS["' . $title . '"] = ' . $value . ";\n\n";
+            }
+
+            file_put_contents($path, $content);
         }
 
-        require_once $configPath;
+        require_once $path;
 
         // config fallback
         foreach ($configs as $configTitle => $info) {
@@ -143,12 +169,12 @@ class Core
                 continue;
             } elseif (gettype($GLOBALS[$configTitle]) !== $info[1]) {
                 $GLOBALS[$configTitle] = $info[2];
-                $debug && $this->tool->error("comfy.config.php: $configTitle must be a {$info[1]}!");
+                $debug && $this->tool->error("comfy.lang.config.php: $configTitle must be a {$info[1]}!");
             }
         }
     }
 
-    public function getDocument()
+    public function getDocument(): void
     {
         $root = $GLOBALS["ROOT"];
         $pagePath = $GLOBALS["CONFIG_PAGE_PATH"];
@@ -175,13 +201,13 @@ class Core
     }
 
     // get request method (get,post,put,delete)
-    public function getMethod()
+    public function getMethod(): string
     {
         return strtolower($_SERVER["REQUEST_METHOD"]);
     }
 
     // get pathname
-    public function getPath()
+    public function getPath(): string
     {
         $path = $_SERVER["REQUEST_URI"] ?? "/";
         $position = strpos($path, "?");
@@ -194,7 +220,7 @@ class Core
     }
 
     // add params
-    public function addParams($input)
+    public function addParams(string $input): string
     {
         $env = $_ENV["ENV"];
         $ver = $GLOBALS["CONFIG_VERSION"];
@@ -214,7 +240,7 @@ class Core
     }
 
     // minimize
-    public function minimize($code)
+    public function minimize(string $code): string
     {
         // match
         $patterns = array(
@@ -254,7 +280,7 @@ class Core
     }
 
     // generate document
-    public function gen($head, $body)
+    public function gen(string $head, string $body): string
     {
         // declarations
         $env = $_ENV["ENV"];
@@ -293,7 +319,7 @@ class Core
     }
 
     // page rendering
-    public function renderPage($page)
+    public function renderPage(string $page): string
     {
         $root = $GLOBALS["ROOT"];
         $env = $_ENV["ENV"];
@@ -318,7 +344,7 @@ class Core
     }
 
     // return 404
-    public function notFound()
+    public function notFound(): string
     {
         $root = $GLOBALS["ROOT"];
         $pagePath = $GLOBALS["CONFIG_PAGE_PATH"];
@@ -327,12 +353,13 @@ class Core
             header($_SERVER["SERVER_PROTOCOL"] . " 404 Not Found", true, 404);
             return $this->renderPage("_404");
         } else {
-            return header($_SERVER["SERVER_PROTOCOL"] . " 404 Not Found", true, 404);
+            header($_SERVER["SERVER_PROTOCOL"] . " 404 Not Found", true, 404);
+            return "";
         }
     }
 
     // file-based routing
-    public function fileBasedRouter()
+    public function fileBasedRouter(): ?string
     {
         $http = $this->http;
         $root = $GLOBALS["ROOT"];
@@ -357,8 +384,14 @@ class Core
             return $http->all($pathName, "index");
         }
 
-        // config page
-        if (strpos($pathName, "_404") || strpos($pathName, "_document")) {
+        /*
+        example:
+        /_document
+        /_404
+        /_init
+         */
+        // denied access of page start with underscore
+        if (strpos($pathName, "_") === 1) {
             return $this->notFound();
         }
 
@@ -382,7 +415,7 @@ class Core
     }
 
     // path resolve
-    public function resolve()
+    public function resolve(): string
     {
         $http = $this->http;
         $method = $this->getMethod();
@@ -404,7 +437,7 @@ class Core
     }
 
     // fire application
-    public function run()
+    public function run(): void
     {
         echo $this->resolve();
     }
