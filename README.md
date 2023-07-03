@@ -7,7 +7,7 @@ Provide an better development environment for developers who targeting specializ
 -   `public` directory <br/>
     Comprises files that are publicly accessible, including the index, robots.txt, sitemap.xml, scripts and styles. <br/><br/>
     -   `index.php` index <br/>
-        This file serves as a trigger to activate the entire system. <br/><br/>
+        This file serves as a entry point of the entire system. <br/><br/>
 -   `src` directory (default) <br/>
     Where the source files for editing reside. <br/><br/>
     -   `pages` directory (default) <br/>
@@ -52,16 +52,16 @@ You can create `index.php` inside the public folder like the example provided be
 require_once __DIR__ . "/../vendor/autoload.php";
 
 $core = new ComfyPHP\Core();
-$http = $core->http;
+$router = $core->getRouter();
 
-$http->get("/", "index");
+$router->get("/", "index");
 
-$http->post("/post/create", "post/create");
-$http->get("/post", "post/read");
-$http->put("/post/update", "post/update");
-$http->delete("/post/delete", "post/delete");
+$router->post("/post", "./api/post/create");
+$router->get("/post", "./api/post/read");
+$router->put("/post", "./api/post/update");
+$router->delete("/post", "./api/post/delete");
 
-$http->all("/menu", "menu/index");
+$router->all("/menu", "./menu/index");
 
 $core->run();
 ```
@@ -143,7 +143,7 @@ or just run the command manually:
 Start the application with development env:
 
 ```bash
-composer run-script dev
+composer run dev
 ```
 
 ## Build for Production
@@ -151,7 +151,7 @@ composer run-script dev
 To build the env for production server:
 
 ```bash
-composer run-script build
+composer run build
 ```
 
 Then you can use apache/nginx to take care of the server.
@@ -161,7 +161,7 @@ Then you can use apache/nginx to take care of the server.
 Start the application with production env:
 
 ```bash
-composer run-script preview
+composer run preview
 ```
 
 ## Server Port
@@ -181,19 +181,19 @@ There are two methods available for routing: function-based routing and file-bas
 
 ### Function-Based Routing
 
-When utilizing Function Based Routing, ComfyPHP will automatically search for a PHP file in `/src/pages` that matches the name mentioned in `/public/index.php`. By default, if you enter `get("/alphabet", "abc");`, it will look for `/src/pages/abc.php`. If you haven't created a file with the same name, it will return no results. Additionally, you can use methods other than `get`, such as `post`, `put`, and `delete`.
+When utilizing Function Based Routing, ComfyPHP will automatically search for a PHP file in `/src/pages` that matches the name mentioned in `/public/index.php`. By default, if you enter `get("/alphabet", "abc");`, it will look for `/src/pages/abc.php`. If you haven't created a file with the same name, it will return no results. Additionally, you can use methods other than `get`, such as `post`, `put`, `patch`, `delete`, `head`, `options`, `trace` and `connect`.
 
 ```php
 $core = new ComfyPHP\Core();
-$http = $core->http;
+$router = $core->getRouter();
 
-$http->get("/", "index");
-$http->get("/alphabet", "abc");
+$router->get("/", "./index");
+$router->get("/alphabet", "./abc");
 ```
 
 ### File-Based Routing
 
-To implement File Based Routing, simply include `fileBasedRouter();` in `/public/index.php`. This enables ComfyPHP to search within the `/src/pages` directory when a user visits the site. For instance, when a user visits `/settings/themes?abc=123` with `POST`,`GET`,`PUT`,`DELETE` HTTP methods, ComfyPHP will look for a file named `settings/themes.php` inside the `pages` folder. If such a file doesn't exist, ComfyPHP will then search for `settings/themes/index.php` instead. It will only return no results if neither `themes.php` nor `index.php` files are created within the `themes` folder.
+To implement File Based Routing, simply include `fileBasedRouter();` in `/public/index.php`. This enables ComfyPHP to search within the `/src/pages` directory when a user visits the site. For instance, when a user visits `/settings/themes?abc=123` with any major HTTP methods, ComfyPHP will look for a file named `settings/themes.php` inside the `pages` folder. If such a file doesn't exist, ComfyPHP will then search for `settings/themes/index.php` instead. It will only return no results if neither `themes.php` nor `index.php` files are created.
 
 ```php
 $core = new ComfyPHP\Core();
@@ -231,14 +231,68 @@ echo $_ENV["COOKIE_DOMAIN"];
 
 For the 404 error, ComfyPHP will send a 404 status back to the client. You can add a file named `_404.php` to the `pages` folder. This file will serve as the error handling page when a client tries to access a page that cannot be found in the router.
 
-## ComfyPHP Default Variables List
+## Tool Functions
 
--   $\_ENV["ENV"]
--   $GLOBALS["ROOT"]
--   $GLOBALS["CONFIG_VERSION"]
--   $GLOBALS["CONFIG_MINIMIZE"]
--   $GLOBALS["CONFIG_PAGE_PATH"]
--   $GLOBALS["SYSTEM_DEBUG"]
+ComfyPHP provides you with some useful tools to simplify building your project. You may take a look at them.
+
+But don't forget the initialize the class first before using them:
+
+```php
+$tools = new ComfyPHP\Tools();
+```
+
+### `useLog`
+
+This function helps you print console.log messages in JavaScript.
+
+```php
+$log = $tools->useLog();
+$log("Hello World!");
+// or
+$tools->useLog("Hello World!");
+
+// result:
+// <script>console.log("Hello World!")</script>
+```
+
+### `useError`
+
+This function helps you print console.error messages in JavaScript.
+
+```php
+$err = $tools->useError();
+$err("Goodbye World!");
+// or
+$tools->useError("Goodbye World!");
+
+// result:
+// <script>console.error("Hello World!")</script>
+```
+
+### `useFilter`
+
+This function helps you escape some special values that may cause XSS attacks.
+
+```php
+$f = $tools->useFilter();
+$f("<script>alert('hack')</script>");
+// or
+$tools->useFilter("<script>alert('hack')</script>");
+
+// result:
+// &lt;script&gt;alert(&apos;hack&apos;)&lt;/script&gt;
+```
+
+## Reserved Variables of ComfyPHP
+
+```php
+$_ENV["ENV"];
+$GLOBALS["ROOT"];
+$GLOBALS["CONFIG_VERSION"];
+$GLOBALS["CONFIG_MINIMIZE"];
+$GLOBALS["CONFIG_PAGE_PATH"];
+$GLOBALS["SYSTEM_DEBUG"];
+```
 
 ## License
 
