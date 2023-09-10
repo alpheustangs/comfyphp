@@ -13,8 +13,8 @@ comfyphp preview --port 4000
 
 $args = $argv;
 $targetDir = ".comfyphp";
-$envDev = [".env.development", ".env.development.local", ".env", ".env.local"];
-$envPrd = [".env.production", ".env.production.local", ".env", ".env.local"];
+$envDev = [".env", ".env.local", ".env.development", ".env.development.local"];
+$envPrd = [".env", ".env.local", ".env.production", ".env.production.local"];
 $contents = "";
 $port = 3000;
 
@@ -66,7 +66,7 @@ function setEnv(string $env): string
 
     // development
     if ($env === "dev") {
-        $contents .= 'ENV="development"';
+        $contents .= 'ENV="development"' . "\n";
         foreach ($envDev as $env) {
             if (file_exists($env)) {
                 $contents .= file_get_contents($env) . PHP_EOL;
@@ -75,7 +75,7 @@ function setEnv(string $env): string
     }
     // production
     else if ($env === "prd") {
-        $contents .= 'ENV="production"';
+        $contents .= 'ENV="production"' . "\n";
         foreach ($envPrd as $env) {
             if (file_exists($env)) {
                 $contents .= file_get_contents($env) . PHP_EOL;

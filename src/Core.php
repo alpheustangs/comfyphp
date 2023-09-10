@@ -74,10 +74,10 @@ class Core implements CoreInterface
 
             // priority from low to high
             $files = [
-                $envDevPath,
-                $envDevLocPath,
                 $envPath,
                 $envLocPath,
+                $envDevPath,
+                $envDevLocPath,
             ];
             $envContent = "";
 

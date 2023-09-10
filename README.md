@@ -4,30 +4,21 @@ Provide an better development environment for developers who targeting specializ
 
 ## Framework Directory Structure
 
--   `public` directory <br/>
-    Comprises files that are publicly accessible, including the index, robots.txt, sitemap.xml, scripts and styles. <br/><br/>
-    -   `index.php` index <br/>
-        This file serves as a entry point of the entire system. <br/><br/>
--   `src` directory (default) <br/>
-    Where the source files for editing reside. <br/><br/>
-    -   `pages` directory (default) <br/>
-        Stores the routing pages for `/public/index.php` <br/><br/>
-        -   `_document.php` config file <br/>
-            This file configures the document's appearance across all the pages. <br/><br/>
--   `.env.local` config file <br/>
-    This file holds the first priority for all environment variables. <br/><br/>
--   `.env` config file <br/>
-    This file holds the second priority for all environment variables. <br/><br/>
--   `.env.development.local` config file <br/>
-    This file holds the third priority for development environment variables. <br/><br/>
--   `.env.development` config file <br/>
-    This file holds the fourth priority for development environment variables. <br/><br/>
--   `.env.production.local` config file <br/>
-    This file holds the third priority for production environment variables. <br/><br/>
--   `.env.production` config file <br/>
-    This file holds the fourth priority for production environment variables. <br/><br/>
--   `comfy.config.php` config file <br/>
-    Contains all the configurations of ComfyPHP framework. <br/><br/>
+```
+├── public
+│   └── index.php
+├── src
+│   └── pages
+│       ├── _document.php
+│       └── index.php
+├── .env.development.local
+├── .env.development
+├── .env.production.local
+├── .env.production
+├── .env.local
+├── .env
+└── comfy.config.php
+```
 
 ## Before Using it
 
@@ -49,6 +40,8 @@ composer require comfyphp/core
 You can create `index.php` inside the public folder like the example provided below:
 
 ```php
+<?php
+
 require_once __DIR__ . "/../vendor/autoload.php";
 
 $core = new ComfyPHP\Core();
@@ -69,6 +62,8 @@ $core->run();
 Or just add the `fileBasedRouter()` function into the `index.php` for File-Based Routing which will be introduced later.
 
 ```php
+<?php
+
 require_once __DIR__ . "/../vendor/autoload.php";
 
 $core = new ComfyPHP\Core();
@@ -207,11 +202,11 @@ To store different environment variables, you can create multiple .env files, wi
 
 -   Development mode
 
-    `.env.local` > `.env` > `.env.development.local` > `.env.development`
+    `.env.development.local` > `.env.development` > `.env.local` > `.env`
 
 -   Production mode
 
-    `.env.local` > `.env` > `.env.production.local` > `.env.production`
+    `.env.production.local` > `.env.production` > `.env.local` > `.env`
 
 ### Example
 

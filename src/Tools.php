@@ -47,7 +47,7 @@ class Tools implements ToolsInterface
         return $useLog($data);
     }
 
-    protected function initUseError()
+    protected function initUseError(): void
     {
         $this->useErrorF = function (mixed $data): string{
             $jdata = json_encode($data);
@@ -72,14 +72,23 @@ class Tools implements ToolsInterface
         return $useError($data);
     }
 
-    protected function initUseFilter()
+    protected function initUseFilterEncode(mixed $data): mixed
+    {
+        if (is_array($data)) {
+            return array_map([$this, "initUseFilterEncode"], $data);
+        }
+
+        return htmlspecialchars($data, ENT_QUOTES | ENT_HTML5, "UTF-8");
+    }
+
+    protected function initUseFilter(): void
     {
         $this->useFilterF = function (mixed $data): string {
-            return htmlspecialchars($data, ENT_QUOTES | ENT_HTML5, "UTF-8");
+            return $this->initUseFilterEncode($data);
         };
     }
 
-    // xss filter
+    // html filter
     public function useFilter(mixed $data = null): mixed
     {
         // declarations
