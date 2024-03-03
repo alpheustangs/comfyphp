@@ -47,14 +47,18 @@ require_once __DIR__ . "/../vendor/autoload.php";
 $core = new ComfyPHP\Core();
 $router = $core->getRouter();
 
-$router->get("/", "index");
+// search for index.php in src/pages (by default)
+$router->get("/", "./index");
 
-$router->post("/post", "./api/post/create");
-$router->get("/post", "./api/post/read");
-$router->put("/post", "./api/post/update");
-$router->delete("/post", "./api/post/delete");
+// return json
+$router->get("/hello", function (): string {
+    $response = [
+        "message" => "Hello, World!",
+    ];
 
-$router->all("/menu", "./menu/index");
+    header("Content-Type: application/json");
+    return json_encode($response);
+});
 
 $core->run();
 ```
